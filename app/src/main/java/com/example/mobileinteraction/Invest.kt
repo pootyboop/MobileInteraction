@@ -36,12 +36,12 @@ class Invest : AppCompatActivity() {
             .addOnSuccessListener {
                 if (it.areModulesAlreadyInstalled()) {
                     // Modules are already installed when the request is sent.
-                    onQRScan("Module already installed!")
+                    //onQRScan("Module already installed!")
                 }
             }
             .addOnFailureListener { e ->
                 // Handle failure…
-                onQRScan(e.toString())
+                //onQRScan(e.toString())
             }
     }
 
@@ -61,25 +61,25 @@ class Invest : AppCompatActivity() {
         scanner.startScan()
             .addOnSuccessListener { barcode ->
                 // Task completed successfully
-                Log.d("hi","successfully finished QR scanner")
+                //Log.d("hi","successfully finished QR scanner")
                 val rawValue: String? = barcode.rawValue;
                 onQRScan(rawValue)
             }
             .addOnCanceledListener {
                 // Task canceled
-                Log.d("hi","cancelled QR scanner")
+                //Log.d("hi","cancelled QR scanner")
                 onQRScan("Scan Cancelled!")
             }
             .addOnFailureListener { e ->
                 // Task failed with an exception
-                Log.d("hi","failed QR scanner")
+                //Log.d("hi","failed QR scanner")
                 onQRScan(e.toString())
             }
     }
 
     fun onQRScan(qrValue: String?) {
         //set on-screen text to represent the scanned QR code
-        val textView: TextView = findViewById(R.id.scannedStockText) as TextView
+        val textView: TextView = findViewById<TextView>(R.id.scannedStockText)
         textView.text = qrValue
     }
 }
