@@ -12,11 +12,16 @@ class GameState() : Parcelable {
     lateinit var players: ArrayList<PlayerInfo>
 
     constructor(parcel: Parcel) : this() {
-        time = parcel.readString()!!
+        time = parcel.readString().toString()
         round = parcel.readInt()
+        players = parcel.readArrayList() as ArrayList<PlayerInfo>
     }
 
     constructor(playerCt: Int) : this() {
+        setPlayerCount(playerCt)
+    }
+
+    fun setPlayerCount(playerCt: Int) {
         players = arrayListOf<PlayerInfo>()
 
         for (i in 0..<playerCt) {
@@ -27,7 +32,6 @@ class GameState() : Parcelable {
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(time)
         parcel.writeInt(round)
-        parcel.writeArray(arrayOf(players))
     }
 
     override fun describeContents(): Int {
@@ -43,4 +47,5 @@ class GameState() : Parcelable {
             return arrayOfNulls(size)
         }
     }
+
 }

@@ -1,5 +1,6 @@
 package com.example.mobileinteraction
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -13,12 +14,29 @@ import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 class Invest : AppCompatActivity() {
+
+    var gameState: GameState? = null
+    var playerIndex: Int = 0
+    var playerCt: Int = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_invest)
 
+        //grab GameState from intent
+        gameState = intent.getParcelableExtra<GameState>("GameState")
 
+        //get current number of players to know how many times to iterate through this screen
+        playerCt = gameState?.players?.size!!
 
+        //QR scanner setup
+        setupQRCodeScanner()
+
+        //reset visual elements to default values
+        resetQRPreview()
+    }
+
+    fun setupQRCodeScanner() {
         //make sure the QR scanner module's available
         val moduleInstallClient = ModuleInstall.getClient(this)
         val optionalModuleApi = GmsBarcodeScanning.getClient(this)
@@ -81,5 +99,39 @@ class Invest : AppCompatActivity() {
         //set on-screen text to represent the scanned QR code
         val textView: TextView = findViewById<TextView>(R.id.scannedStockText)
         textView.text = qrValue
+    }
+
+    fun resetQRPreview() {
+        val textView: TextView = findViewById<TextView>(R.id.scannedStockText)
+        textView.text = "No stock selected"
+    }
+
+    fun pressedNext() {
+        //get the investment the player intends to make
+        //val investText: TextView = findViewById<TextView>(R.id.investmentText)
+        gameState?.players?.get(playerIndex)?.investment = 10; //CHANGE THIS FROM 10
+
+        playerIndex++
+
+        //all players have invested, continue to next stage of game
+        if (playerIndex == playerCt) {
+            //open next activity
+            investmentsFinished()
+        }
+
+        //some player(s) still need to invest, reset the screen for them
+        else {
+            //reset visual elements to default values
+            resetQRPreview()
+        }
+    }
+
+    fun investmentsFinished() {
+        //open Results
+        val intent = Intent(this, Results::class.java)
+        //add the parcelable GameState (which includes PlayerInfos) to the intent
+        intent.putExtra("GameState", gameState)
+
+        startActivity(intent)
     }
 }
