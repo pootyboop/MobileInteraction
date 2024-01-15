@@ -12,7 +12,7 @@ class Home : AppCompatActivity() {
     }
 
     fun startGame(view: View) {
-        val intent = Intent(this, Invest::class.java)
+        val intent = Intent(this, Players::class.java)
         startActivity(intent)
     }
 }

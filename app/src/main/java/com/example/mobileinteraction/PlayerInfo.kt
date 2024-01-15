@@ -1,9 +1,8 @@
 package com.example.mobileinteraction
 
+//used to pass this class through intents with putParcelable()
 import android.os.Parcel
 import android.os.Parcelable
-
-//used to pass this class through intents with putParcelable()
 
 //stores info about each player
 class PlayerInfo() : Parcelable {
