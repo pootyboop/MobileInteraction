@@ -3,19 +3,29 @@ package com.example.mobileinteraction
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.TextView
 import com.google.android.gms.common.moduleinstall.ModuleInstall
 import com.google.android.gms.common.moduleinstall.ModuleInstallRequest
-import com.google.android.gms.tflite.java.TfLite
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
+/* This script uses Google's code scanner setup guide
+ * Author: Google (author name unknown)
+ * Accessed: 12/28/2023
+ * Location: https://developers.google.com/ml-kit/vision/barcode-scanning/code-scanner
+ * */
+
+/* This script uses Google's ModuleInstallClient setup guide
+ * Author: Google (author name unknown)
+ * Accessed: 12/28/2023
+ * Location: https://developers.google.com/android/guides/module-install-apis
+ * */
+
 class Invest : AppCompatActivity() {
 
-    var gameState: GameState? = null
+    lateinit var gameState: GameState
     var playerIndex: Int = 0
     var playerCt: Int = 0
 
@@ -24,18 +34,22 @@ class Invest : AppCompatActivity() {
         setContentView(R.layout.activity_invest)
 
         //grab GameState from intent
-        gameState = intent.getParcelableExtra<GameState>("GameState")
+        gameState = intent.getParcelableExtra<GameState>("GameState")!!
 
         //get current number of players to know how many times to iterate through this screen
-        playerCt = gameState?.players?.size!!
+        playerCt = gameState.players.size
+
+        //update round and time text
+        updateRoundTimeTexts()
 
         //QR scanner setup
         setupQRCodeScanner()
 
         //reset visual elements to default values
-        resetQRPreview()
+        setupNewPlayer()
     }
 
+    //this function is from Google's ModuleInstallClient setup guide
     fun setupQRCodeScanner() {
         //make sure the QR scanner module's available
         val moduleInstallClient = ModuleInstall.getClient(this)
@@ -63,6 +77,7 @@ class Invest : AppCompatActivity() {
             }
     }
 
+    //this function is from Google's code scanner setup guide
     fun scanQRCode(view: View) {
 
 
@@ -101,15 +116,33 @@ class Invest : AppCompatActivity() {
         textView.text = qrValue
     }
 
-    fun resetQRPreview() {
-        val textView: TextView = findViewById<TextView>(R.id.scannedStockText)
-        textView.text = "No stock selected"
+    fun updateRoundTimeTexts() {
+        val round = gameState.round
+        val time = gameState.time
+
+        val roundText: TextView = findViewById<TextView>(R.id.roundText)
+        roundText.text = "Round $round"
+
+        val timeText: TextView = findViewById<TextView>(R.id.timeText)
+        timeText.text = "$time"
+    }
+
+    fun setupNewPlayer() {
+        //reset selected stock
+        val selectedStock: TextView = findViewById<TextView>(R.id.scannedStockText)
+        selectedStock.text = "No stock selected"
+
+        //update player number
+        val playerText: TextView = findViewById<TextView>(R.id.investPlayerID)
+        playerText.text = "Player " + (playerIndex + 1).toString()
     }
 
     fun pressedNext(view: View) {
         //get the investment the player intends to make
         //val investText: TextView = findViewById<TextView>(R.id.investmentText)
-        gameState?.players?.get(playerIndex)?.investment = 10; //CHANGE THIS FROM 10
+
+        //set current player's investment and stock
+        gameState.players.get(playerIndex).invest("AAPL",10); //CHANGE THIS
 
         playerIndex++
 
@@ -122,13 +155,13 @@ class Invest : AppCompatActivity() {
         //some player(s) still need to invest, reset the screen for them
         else {
             //reset visual elements to default values
-            resetQRPreview()
+            setupNewPlayer()
         }
     }
 
     fun investmentsFinished() {
-        //open Results
-        val intent = Intent(this, Results::class.java)
+        //open TimeJump
+        val intent = Intent(this, TimeJump::class.java)
         //add the parcelable GameState (which includes PlayerInfos) to the intent
         intent.putExtra("GameState", gameState)
 

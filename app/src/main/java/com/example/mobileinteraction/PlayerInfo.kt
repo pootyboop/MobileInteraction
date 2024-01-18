@@ -10,6 +10,7 @@ class PlayerInfo() : Parcelable {
     var balance: Int = 100
     var stock: String = ""
     var investment: Int = 10
+    var changePercentage: Float = 1f
 
     constructor(parcel: Parcel) : this() {
         playerID = parcel.readInt()
@@ -20,6 +21,16 @@ class PlayerInfo() : Parcelable {
 
     constructor(id: Int) : this() {
         playerID = id
+    }
+
+    public fun invest(_stock: String, _investment: Int) {
+        stock = _stock
+        investment = _investment
+    }
+
+    public fun investReturn(investmentReturn: Int) {
+        balance -= investment
+        balance += investmentReturn
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

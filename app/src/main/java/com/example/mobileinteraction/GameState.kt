@@ -19,20 +19,55 @@ class GameState() : Parcelable {
     }
 
     constructor(playerCt: Int) : this() {
+        setInitialTime()
         setPlayerCount(playerCt)
     }
 
-    private fun setPlayerCount(playerCt: Int) {
+    private fun setInitialTime() {
+
+        //randomise time?
+        if (false) {
+            val year = 2023 //only use 2023. cannot access older through free API
+            val month = (1..12).shuffled().last()   //can safely randomise month
+            val day = 1 //start on the first of the month to prevent month overlap
+
+            time = "$year-${addZero(month)}-${addZero(day)}"
+        }
+
+        //stand-in date that will be in bounds for now
+        else {
+            time = "2024-01-01"
+        }
+    }
+
+    //adds a zero to ints under 10 to normalize date format
+    //(e.g. 4 -> 04, 12 -> 12)
+    private fun addZero(num: Int): String {
+        if (num < 10) {
+            return "0" + num.toString()
+        }
+
+        return num.toString()
+    }
+
+    private fun setPlayerCount(playersToAdd: Int) {
         players = arrayListOf<PlayerInfo>()
 
-        for (i in 0..<playerCt) {
+        for (i in 0..<playersToAdd) {
             players.add(PlayerInfo(i))
         }
+    }
+
+    fun jumpTimeForward(days: Int) {
+        var day = time.takeLast(2).toInt()
+        day += days
+        time = time.dropLast(2) + addZero(day)
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(time)
         parcel.writeInt(round)
+        parcel.writeList(players)
     }
 
     override fun describeContents(): Int {
