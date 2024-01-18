@@ -19,7 +19,7 @@ class Players : AppCompatActivity() {
     }
 
     //setup the player count seekbar so we can track when it's changed
-    fun setupPlayerCtSeekbar() {
+    private fun setupPlayerCtSeekbar() {
         //https://www.geeksforgeeks.org/seekbar-in-kotlin/
         val seek = findViewById<SeekBar>(R.id.playerCtBar)
         seek?.setOnSeekBarChangeListener(object :

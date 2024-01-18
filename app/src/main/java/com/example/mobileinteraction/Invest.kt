@@ -106,7 +106,7 @@ class Invest : AppCompatActivity() {
         textView.text = "No stock selected"
     }
 
-    fun pressedNext() {
+    fun pressedNext(view: View) {
         //get the investment the player intends to make
         //val investText: TextView = findViewById<TextView>(R.id.investmentText)
         gameState?.players?.get(playerIndex)?.investment = 10; //CHANGE THIS FROM 10

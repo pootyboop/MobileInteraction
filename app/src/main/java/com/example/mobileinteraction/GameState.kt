@@ -14,14 +14,15 @@ class GameState() : Parcelable {
     constructor(parcel: Parcel) : this() {
         time = parcel.readString().toString()
         round = parcel.readInt()
-        players = parcel.readArrayList() as ArrayList<PlayerInfo>
+        players = parcel.readArrayList(PlayerInfo::class.java.classLoader) as ArrayList<PlayerInfo>
+
     }
 
     constructor(playerCt: Int) : this() {
         setPlayerCount(playerCt)
     }
 
-    fun setPlayerCount(playerCt: Int) {
+    private fun setPlayerCount(playerCt: Int) {
         players = arrayListOf<PlayerInfo>()
 
         for (i in 0..<playerCt) {
