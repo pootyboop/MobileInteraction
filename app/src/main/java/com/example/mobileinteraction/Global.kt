@@ -46,6 +46,7 @@ class Global : Application() {
         fun requestSymbolData(symbol: String, callback : () -> Unit) {
             //don't request data if already held
             if (containsSymbol(symbol)) {
+                callback()
                 return
             }
 
@@ -131,6 +132,12 @@ class Global : Application() {
             return -1
         }
 
+        fun getDateFromIndex(index: Int) : String {
+            var date = getSymbolData(initRequestSymbol)!!.getJSONObject(index).getString("date")
+            date = date.dropLast(14) //removes "T00:00:00+0000"
+            return date
+        }
+
         fun getPercentageFromCloses(closePrev: Float, closeCurr: Float) : Float {
             val diff = closeCurr - closePrev
             val avg = (closeCurr + closePrev) / 2
@@ -138,7 +145,7 @@ class Global : Application() {
         }
 
         fun getPercentagesFromCloses(closesPrev: ArrayList<Float>, closesCurr: ArrayList<Float>) : ArrayList<Float> {
-            var percentages = ArrayList<Float>()
+            val percentages = ArrayList<Float>()
 
             var index = 0
             for (closePrev in closesPrev) {

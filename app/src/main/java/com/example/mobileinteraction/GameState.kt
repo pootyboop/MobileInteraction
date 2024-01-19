@@ -9,13 +9,11 @@ import org.json.JSONArray
 //stores information about the current game
 //also holds references to all PlayerInfos
 class GameState() : Parcelable {
-    var time: String = ""
     var index: Int = 0
-    var round: Int = 0
+    var round: Int = 1
     lateinit var players: ArrayList<PlayerInfo>
 
     constructor(parcel: Parcel) : this() {
-        time = parcel.readString().toString()
         index = parcel.readInt()
         round = parcel.readInt()
         players = parcel.readArrayList(PlayerInfo::class.java.classLoader) as ArrayList<PlayerInfo>
@@ -66,14 +64,7 @@ class GameState() : Parcelable {
         return symbols
     }
 
-    fun jumpTimeForward(days: Int) {
-        var day = time.takeLast(2).toInt()
-        day += days
-        time = time.dropLast(2) + addZero(day)
-    }
-
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(time)
         parcel.writeInt(index)
         parcel.writeInt(round)
         parcel.writeList(players)

@@ -129,7 +129,7 @@ class Invest : AppCompatActivity() {
 
     fun updateRoundTimeTexts() {
         val round = gameState.round
-        val time = gameState.time
+        val time = Global.getDateFromIndex(gameState.index)
 
         val roundText: TextView = findViewById<TextView>(R.id.roundText)
         roundText.text = "Round $round"
