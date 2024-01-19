@@ -77,12 +77,11 @@ class Invest : AppCompatActivity() {
             .addOnSuccessListener {
                 if (it.areModulesAlreadyInstalled()) {
                     // Modules are already installed when the request is sent.
-                    //onQRScan("Module already installed!")
                 }
             }
             .addOnFailureListener { e ->
                 // Handle failure…
-                //onQRScan(e.toString())
+                onQRScan(e.toString())
             }
     }
 

@@ -52,11 +52,14 @@ class Players : AppCompatActivity() {
         //...so it only sets up the GameState once
         val gameState: GameState = GameState(playerCt)
 
-        //open Invest
-        val intent = Intent(this, Invest::class.java)
-        //add the parcelable GameState (which includes PlayerInfos) to the intent
-        intent.putExtra("GameState", gameState)
+        gameState.getInitIndex() {
+            Log.d("GAMESTATEINDEX",gameState.index.toString())
+            //open Invest
+            val intent = Intent(this, Invest::class.java)
+            //add the parcelable GameState (which includes PlayerInfos) to the intent
+            intent.putExtra("GameState", gameState)
 
-        startActivity(intent)
+            startActivity(intent)
+        }
     }
 }

@@ -12,7 +12,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="176dp"
         android:layout_marginEnd="177dp"
-        android:text="Fast forwarding 1 day..."
+        android:text="Fast forwarding..."
+        android:textSize="34sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.494"
@@ -32,4 +33,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/prevDateToNewDate"
+        android:layout_width="348dp"
+        android:layout_height="77dp"
+        android:text="(2024-01-01 to 2024-01-02)"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/apiErrorText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fastForward"
+        app:layout_constraintVertical_bias="0.0" />
 </androidx.constraintlayout.widget.ConstraintLayout>
