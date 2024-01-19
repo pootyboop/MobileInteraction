@@ -45,9 +45,10 @@
         app:layout_constraintVertical_bias="0.92" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/investNextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:enabled="false"
         android:onClick="pressedNext"
         android:text="Next"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -71,12 +72,13 @@
         android:id="@+id/textInputLayout"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/button2"
+        app:layout_constraintBottom_toTopOf="@+id/investNextButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageButton">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/investmentInputText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"

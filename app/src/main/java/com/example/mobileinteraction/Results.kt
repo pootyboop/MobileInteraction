@@ -28,23 +28,16 @@ class Results : AppCompatActivity() {
     }
 
     fun pressedNext(view: View) {
-        //get the investment the player intends to make
-        //val investText: TextView = findViewById<TextView>(R.id.investmentText)
-
-        //set current player's investment and stock
-        gameState.players.get(playerIndex).invest("AAPL",10); //CHANGE THIS
-
         playerIndex++
 
-        //all players have invested, continue to next stage of game
+        //all players have seen results, continue to next stage of game
         if (playerIndex == playerCt) {
             //open next activity
             resultsFinished()
         }
 
-        //some player(s) still need to invest, reset the screen for them
+        //some player(s) still have results, reset the screen for them
         else {
-            //reset visual elements to default values
             setupNewPlayer()
         }
     }

@@ -10,12 +10,17 @@ import java.io.IOException
 import okhttp3.*
 import org.json.JSONArray
 
+/** This script includes a solution from StackOverflow
+ * Author: Ilya
+ * Accessed: 1/14/2024
+ * Location: https://stackoverflow.com/a/36188796
+ */
 
 class TimeJump : AppCompatActivity() {
     lateinit var gameState: GameState
     var symbolClose = mutableMapOf<String, Float>()
     var callCounter: Int = 0    //counts all necessary API calls and proceeds to next activity when finished
-    val daysToJump: Int = 4 //how many days to progress forward
+    val daysToJump: Int = 5 //how many days to progress forward
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +48,10 @@ class TimeJump : AppCompatActivity() {
                 symbols.add(player.stock)
                 callCounter++
             }
+        }
+
+        if (callCounter == 0) {
+            displayError("Players picked no stocks!")
         }
 
         //iterate through all symbols, grab their data, apply it to investments
@@ -77,9 +86,10 @@ class TimeJump : AppCompatActivity() {
         })
     }
 
-    //Ilya https://stackoverflow.com/questions/36184641/kotlin-iterate-through-a-jsonarray
+    //Ilya's code begins
     operator fun JSONArray.iterator(): Iterator<JSONObject>
             = (0 until length()).asSequence().map { get(it) as JSONObject }.iterator()
+    //Ilya's code ends
 
     fun getSymbolValueFromJSON(rawJson: String, stockSymbol: String) {
         runOnUiThread(java.lang.Runnable { //This section has to happen on the same thread as the user interface.

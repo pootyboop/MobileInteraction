@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import com.google.android.gms.common.moduleinstall.ModuleInstall
 import com.google.android.gms.common.moduleinstall.ModuleInstallRequest
@@ -29,6 +30,10 @@ class Invest : AppCompatActivity() {
     var playerIndex: Int = 0
     var playerCt: Int = 0
 
+    //commonly used views
+    lateinit var investmentInputText: TextView
+    lateinit var nextButton: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_invest)
@@ -38,6 +43,10 @@ class Invest : AppCompatActivity() {
 
         //get current number of players to know how many times to iterate through this screen
         playerCt = gameState.players.size
+
+        //setup commonly used views
+        investmentInputText = findViewById<TextView>(R.id.investmentInputText)
+        nextButton = findViewById<Button>(R.id.investNextButton)
 
         //update round and time text
         updateRoundTimeTexts()
@@ -112,8 +121,11 @@ class Invest : AppCompatActivity() {
 
     fun onQRScan(qrValue: String?) {
         //set on-screen text to represent the scanned QR code
-        val textView: TextView = findViewById<TextView>(R.id.scannedStockText)
-        textView.text = qrValue
+        val scannedStockText: TextView = findViewById<TextView>(R.id.scannedStockText)
+        scannedStockText.text = qrValue
+
+        gameState.players[playerIndex].stock = qrValue!!
+        nextButton.isEnabled = true
     }
 
     fun updateRoundTimeTexts() {
@@ -135,26 +147,27 @@ class Invest : AppCompatActivity() {
         //update player number
         val playerText: TextView = findViewById<TextView>(R.id.investPlayerID)
         playerText.text = "Player " + (playerIndex + 1).toString()
+
+        //reset investment views
+        investmentInputText.text = "10"
+        nextButton.isEnabled = false
     }
 
     fun pressedNext(view: View) {
-        //get the investment the player intends to make
-        //val investText: TextView = findViewById<TextView>(R.id.investmentText)
+        //set current player's investment. toString().toInt() works around a TextInputEditText issue
+        gameState.players.get(playerIndex).investment = investmentInputText.text.toString().toInt()
 
-        //set current player's investment and stock
-        gameState.players.get(playerIndex).invest("AAPL",10); //CHANGE THIS
-
+        //next player's turn
         playerIndex++
 
-        //all players have invested, continue to next stage of game
+        //but there is no next player! all players have invested, continue to next stage of game
         if (playerIndex == playerCt) {
             //open next activity
             investmentsFinished()
         }
 
-        //some player(s) still need to invest, reset the screen for them
+        //just kidding. some player(s) still need to invest, reset the screen for them
         else {
-            //reset visual elements to default values
             setupNewPlayer()
         }
     }

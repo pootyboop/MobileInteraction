@@ -23,11 +23,6 @@ class PlayerInfo() : Parcelable {
         playerID = id
     }
 
-    public fun invest(_stock: String, _investment: Int) {
-        stock = _stock
-        investment = _investment
-    }
-
     public fun investReturn(investmentReturn: Int) {
         balance -= investment
         balance += investmentReturn
