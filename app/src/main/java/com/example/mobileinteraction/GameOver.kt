@@ -31,7 +31,7 @@ class GameOver : AppCompatActivity() {
         }
 
         val winnerText: TextView = findViewById<TextView>(R.id.winnerPlayer)
-        winnerText.text = "Player " + winner.playerID.toString()
+        winnerText.text = "Player " + (winner.playerID + 1).toString()
 
         val winnerBalance: TextView = findViewById<TextView>(R.id.winnerBalance)
         winnerBalance.text = "$" + winner.balance.toString()

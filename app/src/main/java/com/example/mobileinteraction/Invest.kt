@@ -1,9 +1,14 @@
 package com.example.mobileinteraction
 
+import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -15,14 +20,20 @@ import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 /* This script uses Google's code scanner setup guide
  * Author: Google (author name unknown)
- * Accessed: 12/28/2023
+ * Accessed: 28/12/2023
  * Location: https://developers.google.com/ml-kit/vision/barcode-scanning/code-scanner
  * */
 
 /* This script uses Google's ModuleInstallClient setup guide
  * Author: Google (author name unknown)
- * Accessed: 12/28/2023
+ * Accessed: 28/12/2023
  * Location: https://developers.google.com/android/guides/module-install-apis
+ * */
+
+/* This script includes a Kotlin adaptation of a Java solutiuon from Stackoverflow
+ * Author: ARK
+ * Accessed: 17/1/2024
+ * Location: https://stackoverflow.com/a/37394516
  * */
 
 class Invest : AppCompatActivity() {
@@ -50,6 +61,28 @@ class Invest : AppCompatActivity() {
         investmentInputText = findViewById<TextView>(R.id.investmentInputText)
         nextButton = findViewById<Button>(R.id.investNextButton)
         scanQRButton = findViewById<ImageView>(R.id.scanQRButton)
+
+
+        //my adaptation of ARK's code begins
+        //listen for investmentInputText to verify input
+        investmentInputText.setOnEditorActionListener(object : TextView.OnEditorActionListener {
+            override fun onEditorAction(view: TextView?, actionId: Int, event: KeyEvent?): Boolean {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+
+                    //my code entirely from here...
+                    setInvestmentText(investmentInputText.text.toString(), true)
+
+                    //close keyboard manually. overriding onEditorAction removes keyboard-closing functionality for some reason
+                    val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                    inputMethodManager.hideSoftInputFromWindow(view?.windowToken, 0)
+                    //...to here.
+
+                    return true
+                }
+                return false
+            }
+        })
+        //my adaptation of ARK's code ends
 
         //update round and time text
         updateRoundTimeTexts()
@@ -156,9 +189,77 @@ class Invest : AppCompatActivity() {
         investBalance.text = "$" + gameState.players.get(playerIndex).balance
 
         //reset investment views
-        investmentInputText.text = "10"
+        setInvestmentText(Global.defaultInvestment.toString(), false)
         nextButton.isEnabled = false
         scanQRButton.setImageDrawable(getResources().getDrawable(R.drawable.qradd))
+    }
+
+    //set the investment input text
+    //use doSafe to perform checks to make sure amount is valid
+    fun setInvestmentText(amount: String, doSafe: Boolean) {
+        var newAmount: String
+
+        //verify the int-iness of the string and clamp it to valid range
+        if (doSafe) {
+            var amountInt = verifyInvestmentAmount(amount)
+            amountInt = clampInvestmentAmount(amountInt)
+            newAmount = amountInt.toString()
+        }
+
+        else {
+            newAmount = amount
+        }
+
+        investmentInputText.text = newAmount
+    }
+
+    fun verifyInvestmentAmount(amount: String) : Int {
+        //save the string as an int
+        var newAmount: Int
+
+        //check if the new string's valid
+        if (isIntString(amount)) {
+            try {
+                newAmount = amount.toInt()
+            }
+            catch (_: NumberFormatException) {
+                newAmount = Global.defaultInvestment
+            }
+        }
+
+        //otherwise use default value
+        else {
+            newAmount = Global.defaultInvestment
+        }
+
+        return newAmount
+    }
+
+    fun clampInvestmentAmount(amount: Int) : Int {
+        var newAmount = amount
+
+        //clamp the amount between the minimum investment and the player's balance
+        val player = gameState.players.get(playerIndex)
+        if (newAmount > player.balance) {
+            newAmount = player.balance
+        }
+        else if (newAmount < Global.minInvestment) {
+            newAmount = Global.minInvestment
+        }
+
+        return newAmount
+    }
+
+    fun isIntString(string: String) : Boolean {
+        //if ANY character in the string is not a digit, it's not an int
+        for (char in string) {
+            if (!char.isDigit()) {
+                return false
+            }
+        }
+
+        //otherwise it is an int
+        return true
     }
 
     fun pressedNext(view: View) {

@@ -3,7 +3,6 @@ package com.example.mobileinteraction
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.core.view.isVisible
@@ -25,28 +24,17 @@ class Scoreboard : AppCompatActivity() {
         gameState = intent.getParcelableExtra<GameState>("GameState")!!
 
         //setup scoreboard
-        rankPlayers()
+        displayScores()
 
-        //hide next round tip text if necessary
+        //hide next round tip text if this is the last round
         hideTip()
     }
 
-    fun rankPlayers() {
-        //ID, balance
-        val scoreboard = mutableMapOf<Int, Int>()
-
-        for (player in gameState.players) {
-            scoreboard.put(player.playerID + 1, player.balance)
-        }
-
-        scoreboard.toSortedMap()
-
+    fun displayScores() {
         var scoreboardContent = ""
 
-        var index = 1   //start at 1 for 1st place, 2nd, etc
-        for (i in scoreboard) {
-            scoreboardContent += index.toString() + ". Player " + i.key.toString() + " - $" + i.value.toString() + "\n"
-            index++
+        for (player in gameState.players) {
+            scoreboardContent += "Player " + (player.playerID + 1).toString() + " - $" + player.balance.toString() + "\n"
         }
 
         val scoreboardText: TextView = findViewById<TextView>(R.id.scoreboardText)

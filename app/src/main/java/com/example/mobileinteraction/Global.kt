@@ -44,9 +44,15 @@ class Global : Application() {
         //this inaccurately represents stock fluctuations...
         //but exaggerates day-to-day changes to be more influential/fun in-game
         //1 = no change, <1 = less change, >1 = more change. e.g. 1.2 = 20% more exaggerated
-        public val percentageMultiplier = 1.2f
+        public val percentageMultiplier: Float = 1.2f
         //maximum rounds per game
-        public val maxRounds = 5
+        public val maxRounds: Int = 5
+        //default investment to put in the textbox on the Investment screen
+        public val defaultInvestment: Int = 50
+        //minimum amount you HAVE to invest no matter what
+        //this gets invested even if your balance is lower than it
+        //but that will realistically never happen unless you astronomically suck at the game
+        public val minInvestment: Int = 5
         //==========================================================================
 
         //STOCK/SYMBOL VARIABLES
@@ -56,10 +62,9 @@ class Global : Application() {
 
         //DEVELOPER
         //enable to use backup JSON instead of requesting from API
-        //i have limited requests!
         val useBackupData: Boolean = false
 
-        //API KEY FOR MARKETSTACK
+        //API key for marketstack
         val apiKey = "afd2c94c6179422f445132c4c0738978"
 
 

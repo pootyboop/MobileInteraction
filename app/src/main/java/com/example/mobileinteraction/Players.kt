@@ -73,8 +73,8 @@ class Players : AppCompatActivity() {
         val gameState: GameState = GameState(playerCt)
 
         gameState.getInitIndex(this) {
-            //open Invest
-            val intent = Intent(this, Invest::class.java)
+            //open Shuffle
+            val intent = Intent(this, Shuffle::class.java)
             //add the parcelable GameState (which includes PlayerInfos) to the intent
             intent.putExtra("GameState", gameState)
 
