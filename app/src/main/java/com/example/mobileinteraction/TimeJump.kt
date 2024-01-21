@@ -3,11 +3,7 @@ package com.example.mobileinteraction
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.TextView
-import org.json.JSONException
-import org.json.JSONObject
-import org.json.JSONArray
 
 class TimeJump : AppCompatActivity() {
     lateinit var gameState: GameState
@@ -24,7 +20,20 @@ class TimeJump : AppCompatActivity() {
         val datesTransition: TextView = findViewById<TextView>(R.id.datesTransition)
         datesTransition.text = "(" + Global.getDateTransition(gameState.index) + ")"
 
-        Global.jumpForward(this, gameState) {
+        //moving down (-1) in the array moves toward present day, so this moves ahead one day
+        //do this separate from onStart so time does not progress every time the player restarts
+        gameState.index--
+    }
+
+    //onStart is used for updatePercentagesPostJump since this requests data from the API
+    //when the data comes back, this app may not be open to receive it
+    //so ask for it again every time the app is restarted
+    //this will not be called after the data is successfully received...
+    //...because as soon as it is, finishedLoading() is called and we continue to the next activity
+    override fun onStart() {
+        super.onStart()
+
+        Global.updatePercentagesPostJump(this, gameState) {
             finishedLoading()
         }
     }

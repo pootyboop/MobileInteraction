@@ -3,7 +3,6 @@ package com.example.mobileinteraction
 import android.app.Activity
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import okhttp3.Call
 import okhttp3.Callback
@@ -77,22 +76,14 @@ class Global : Application() {
         }
 
         //called from TimeJump.kt when skipping ahead to the next date with data from the API
-        //jumps forward one index (a day or more) and gets information for stocks
-        fun jumpForward(context: Context, gameState: GameState, callback: () -> Unit) {
+        //gets information for stock percentages after jumping forward one index (a day or more)
+        fun updatePercentagesPostJump(context: Context, gameState: GameState, callback: () -> Unit) {
             //get all symbols players invested in
             val symbols = gameState.getPlayerSymbols()
 
             //request all of those symbols (symbols with data already stored will not request)
             requestAllSymbolData(context, symbols) {
-                //when all symbol data requests are complete...
-                // ...create a string of the date transition for UI...
-                //...and get the close change percentage
-                var dateTransition = getDateFromIndex(gameState.index)
-                gameState.index--   //moving down (-1) in the array moves toward present day, so this moves ahead one day
-                dateTransition += " -> " + getDateFromIndex(gameState.index)
-
                 updatePlayerPercentages(gameState)
-
                 callback()
             }
         }
@@ -334,11 +325,10 @@ class Global : Application() {
             })
         }
 
-        //display a simple dialog
-        fun displayDialog(context: Context, title: String, message: String) {
-
-            (context as Activity).runOnUiThread(java.lang.Runnable {
-                val builder: AlertDialog.Builder = AlertDialog.Builder(context)
+        //display a simple alert dialog with an "Ok" button
+        fun displayDialog(activity: Activity, title: String, message: String) {
+            activity.runOnUiThread(java.lang.Runnable {
+                val builder: AlertDialog.Builder = AlertDialog.Builder(activity)
                 builder
                     .setTitle(title)
                     .setMessage(message)
@@ -350,11 +340,11 @@ class Global : Application() {
             })
         }
 
-        //display a dialog telling the player to fix their awful internet issues
-        fun displayDialogNoInternet(context: Context) {
+        //display a dialog telling the player to fix their dag nab internet issues
+        fun displayDialogNoInternet(activity: Activity) {
             val title = "No Internet Connection"
             val message = "Please connect to the internet and try again."
-            displayDialog(context, title, message)
+            displayDialog(activity, title, message)
         }
 
 
