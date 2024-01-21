@@ -3,7 +3,9 @@ package com.example.mobileinteraction
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
 import kotlin.math.roundToInt
 
@@ -50,13 +52,14 @@ class Results : AppCompatActivity() {
         //stock change
         val symbolPercentChange: TextView = findViewById<TextView>(R.id.symbolPercentChange)
         val player = gameState.players.get(playerIndex)
-        val changePercentage: String = plusIfPositive(player.changePercentage.toInt()) + (player.changePercentage * 100).roundToInt().toString() + "%"
-        symbolPercentChange.text = player.stock + " " + changePercentage
+
+        val changePercentage = player.changePercentage - 1
+        val changePercentageText: String = plusIfPositive(changePercentage) + (changePercentage * 100).toString() + "%"
+        symbolPercentChange.text = player.stock + " " + changePercentageText
 
         val prevInvest = player.investment
-        val newInvest = player.investment * player.changePercentage.roundToInt()
+        val newInvest = (player.investment * player.changePercentage).toInt()
         player.investReturn(newInvest)
-
 
         val investmentWithChange: TextView = findViewById<TextView>(R.id.investmentWithChange)
         investmentWithChange.text = "$" + prevInvest + " -> $" + newInvest
@@ -64,9 +67,15 @@ class Results : AppCompatActivity() {
         //update final balance
         val balanceResult: TextView = findViewById<TextView>(R.id.balanceResult)
         balanceResult.text = "$" + player.balance.toString()
+
+        //change logo to downward red graph if stock lost value
+        if (player.changePercentage < 0) {
+            val resultsLogoBG: ImageView = findViewById<ImageView>(R.id.resultsLogoBG)
+            resultsLogoBG.setImageDrawable(getResources().getDrawable(R.drawable.logobad))
+        }
     }
 
-    fun plusIfPositive(num: Int) : String {
+    fun plusIfPositive(num: Float) : String {
         if (num >= 0) {
             return "+"
         }

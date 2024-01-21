@@ -1,7 +1,10 @@
 package com.example.mobileinteraction
 
+import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.util.Log
+import androidx.appcompat.app.AlertDialog
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -12,138 +15,111 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
-/** This script includes a solution from StackOverflow
+/** This script includes a solution based on Mobile Interaction Practical 4's MainActivity.kt
+ * Author: Sanjit Samaddar
+ * Accessed: 1/8/2024
+ * Location: https://github.com/SS-MIConvenor22/MI-practical4/blob/master/app/src/main/java/com/example/practical4/MainActivity.kt
+ */
+
+/** This script includes a solution taken directly from StackOverflow
  * Author: Ilya
  * Accessed: 1/14/2024
  * Location: https://stackoverflow.com/a/36188796
  */
 
+/** This script includes a solution based on a StackOverflow comment
+ * Author: AbuMaaiz
+ * Accessed: 1/15/2024
+ * Location: https://stackoverflow.com/questions/56962608/how-to-read-json-file-from-assests-in-android-using-kotlin
+ */
+
 class Global : Application() {
-    //stock manager
+
+    //STOCK MANAGER
+    //calls APIs and has a bunch of utility functions for managing stocks/players/investments
+    //asks API for stock information and saves it, so each stock only needs to be requested once per app use (unless offloaded)
     companion object {
+
+        //PUBLIC GAMERULES =========================================================
+        //amount to inflate the percentage of change between stock closes across two dates
+        //this inaccurately represents stock fluctuations...
+        //but exaggerates day-to-day changes to be more influential/fun in-game
+        //1 = no change, <1 = less change, >1 = more change. e.g. 1.2 = 20% more exaggerated
+        public val percentageMultiplier = 1.2f
+        //maximum rounds per game
+        public val maxRounds = 5
+        //==========================================================================
+
+        //STOCK/SYMBOL VARIABLES
+        //stores all symbol data so API requests are only made for new unique symbols
         private var symbolData = mutableMapOf<String, JSONArray>()
-        val initRequestSymbol: String = "AAPL"    //stock symbol to initially load. must have one
-        var pendingData: Int = 0    //number of API requests we haven't heard back from
+        val initRequestSymbol: String = "AAPL"    //stock symbol to initially load. symbol is arbitrary. must have one
 
-        fun containsSymbol(symbol: String) : Boolean {
-            return symbolData.containsKey(symbol)
-        }
+        //DEVELOPER
+        //enable to use backup JSON instead of requesting from API
+        //i have limited requests!
+        val useBackupData: Boolean = false
 
-        fun getSymbolData(symbol: String) : JSONArray? {
-            if (containsSymbol(symbol)) {
-                return symbolData[symbol]
+        //API KEY FOR MARKETSTACK
+        val apiKey = "afd2c94c6179422f445132c4c0738978"
+
+
+
+        //called at the start of the game
+        //this automatically loads initRequestSymbol's data...
+        //...to determine the length of the data the API offers
+        //just to make sure we don't get out of sync
+        fun getInitialIndex(context: Context, gameState: GameState, callback: (Int) -> Unit) {
+            requestSymbolData(context, initRequestSymbol) {
+                //-2 = -1 to get in array bounds + -1 to ensure there was a previous date to compare to
+                callback(getSymbolData(initRequestSymbol)!!.length() - 2)
             }
-
-            return null
         }
 
-        fun addSymbolData(symbol: String, data: JSONArray) {
-            if (!containsSymbol(symbol)) {
-                symbolData.put(symbol,data)
-            }
-        }
+        //called from TimeJump.kt when skipping ahead to the next date with data from the API
+        //jumps forward one index (a day or more) and gets information for stocks
+        fun jumpForward(context: Context, gameState: GameState, callback: () -> Unit) {
+            //get all symbols players invested in
+            val symbols = gameState.getPlayerSymbols()
 
-        fun requestSymbolData(symbol: String, callback : () -> Unit) {
-            //don't request data if already held
-            if (containsSymbol(symbol)) {
-                callback()
-                return
-            }
+            //request all of those symbols (symbols with data already stored will not request)
+            requestAllSymbolData(context, symbols) {
+                //when all symbol data requests are complete...
+                // ...create a string of the date transition for UI...
+                //...and get the close change percentage
+                var dateTransition = getDateFromIndex(gameState.index)
+                gameState.index--   //moving down (-1) in the array moves toward present day, so this moves ahead one day
+                dateTransition += " -> " + getDateFromIndex(gameState.index)
 
-            var url = "http://api.marketstack.com/v1/eod?access_key=16ebf1da05fb9a222f9b810a5349af0b&symbols=$symbol"
-            sendAPIRequest(url, symbol, callback)
-        }
+                updatePlayerPercentages(gameState)
 
-        private fun sendAPIRequest(url:String, symbol: String, callback : () -> Unit) {
-            val client = OkHttpClient()
-            val request = Request.Builder().url(url).build()
-            pendingData++
-            client.newCall(request).enqueue(object : Callback { //This is an inner class that will be used to handle the response.
-
-                override fun onFailure(call: Call, e: IOException) {
-                    Log.d("ERROR", e.toString())
-                    pendingData--
-                }
-
-                override fun onResponse(call: Call, response: Response) { //If the response is good...
-                    response.use{
-                        if (!response.isSuccessful) throw IOException ("Unexpected code $response") // Ensure that we throw an exception if response is not successful
-                        getDatesFromJSON(response.body!!.string(), symbol, callback) //send the JSON we got from the server to the readJSONFact function.
-                    }
-                    pendingData--
-                }
-            })
-        }
-
-        fun getDatesFromJSON(rawJson: String, symbol: String, callback : () -> Unit) {
-            try {
-                var data = JSONObject(rawJson).getJSONArray("data")
-                addSymbolData(symbol, data)
                 callback()
             }
-            catch (e: JSONException) {
-                Log.d("ERROR", e.toString())
-            }
         }
 
-        //Ilya's code begins
-        operator fun JSONArray.iterator(): Iterator<JSONObject>
-                = (0 until length()).asSequence().map { get(it) as JSONObject }.iterator()
-        //Ilya's code ends
+        //update all players' close percentages of change between the given index's date and the date prior for their respective symbol
+        fun updatePlayerPercentages(gameState: GameState) {
+            val percentages = getClosePercentages(gameState.getPlayerSymbols(), gameState.index)
 
-        fun getClose(symbol: String, closeDate: String) : Float {
-            val defaultReturn = 1f
-
-            val json = getSymbolData(symbol) ?: return defaultReturn
-
-            //find the corresponding entry for currentDate
-            for (date in json) {
-                val checkDate = date.getString("date")
-                if (checkDate == closeDate) {
-
-                    //calc average between today and yesterday's close
-                    return date.getInt("close").toFloat()
-                }
-            }
-
-            return defaultReturn
-        }
-
-        fun getCloseByIndex(symbol: String, index: Int) : Float {
-            val defaultReturn = 1f
-
-            val json = getSymbolData(symbol) ?: return defaultReturn
-            return json.getJSONObject(index).getString("close").toFloat()
-        }
-
-        fun getDateIndex(symbol: String, findDate: String) : Int {
-            val json = getSymbolData(symbol)  ?: return -1
-
-            var index: Int = 0
-            for (date in json) {
-                val checkDate = date.getString("date")
-                if (checkDate == findDate){
-                    return index
-                }
-
+            var index = 0
+            for (player in gameState.players) {
+                player.changePercentage = percentages[index]
                 index++
             }
-
-            return -1
         }
 
-        fun getDateFromIndex(index: Int) : String {
-            var date = getSymbolData(initRequestSymbol)!!.getJSONObject(index).getString("date")
-            date = date.dropLast(14) //removes "T00:00:00+0000"
-            return date
+        //get the close percentages of change between the given index's date and the date prior for all given symbols
+        fun getClosePercentages(symbols: ArrayList<String>, index: Int) : ArrayList<Float> {
+            //current date's closes
+            val currCloses = getClosesByIndex(symbols, index)
+            //+1 = get the closes from the previous date with data
+            val prevCloses = getClosesByIndex(symbols, index + 1)
+
+            return getPercentagesFromCloses(prevCloses, currCloses)
         }
 
-        fun getPercentageFromCloses(closePrev: Float, closeCurr: Float) : Float {
-            val diff = closeCurr - closePrev
-            val avg = (closeCurr + closePrev) / 2
-            return diff / avg
-        }
-
+        //get all percentages of change from multiple sets of closes
+        //ensure closesPrev and closesCurr are equal length
         fun getPercentagesFromCloses(closesPrev: ArrayList<Float>, closesCurr: ArrayList<Float>) : ArrayList<Float> {
             val percentages = ArrayList<Float>()
 
@@ -156,58 +132,59 @@ class Global : Application() {
             return percentages
         }
 
+        //get the percentage of change between two close values
+        //this percentage is relative to the first value, not second
+        //e.g. 40 -> 30 = 75% change from original, not 66%
+        //percentageMultiplier is applied here
+        fun getPercentageFromCloses(closePrev: Float, closeCurr: Float) : Float {
+            val diff = closePrev - closeCurr
+            var percent = diff / closePrev + 1
+
+            return percent * percentageMultiplier
+        }
+
+        //get the closes of every given symbol on the date according to the given index
         fun getClosesByIndex(symbols: ArrayList<String>, index: Int) : ArrayList<Float> {
             var closes = ArrayList<Float>()
 
             for (symbol in symbols) {
-                closes.add(getCloseByIndex(symbol, index))
+                var close = getCloseByIndex(symbol, index)
+                closes.add(close)
             }
 
             return closes
         }
 
-        fun getClosePercentages(symbols: ArrayList<String>, index: Int) : ArrayList<Float> {
-            val currCloses = getClosesByIndex(symbols, index)
-            val prevCloses = getClosesByIndex(symbols, index + 1)
+        //gets a symbol's close value from its index in the data JSONArray
+        fun getCloseByIndex(symbol: String, index: Int) : Float {
+            //return this if any issues
+            val defaultReturn = 1f
 
-            return getPercentagesFromCloses(prevCloses, currCloses)
+            //return the default if there's no data available
+            val json = getSymbolData(symbol) ?: return defaultReturn
+
+            //get the close
+            return json.getJSONObject(index).getString("close").toFloat()
         }
 
-        fun updatePlayerPercentages(gameState: GameState) {
-            val percentages = getClosePercentages(gameState.getPlayerSymbols(), gameState.index)
-
-            var index = 0
-            for (player in gameState.players) {
-                player.changePercentage = percentages[index]
-                index++
-            }
-        }
-
-        fun jumpForward(gameState: GameState, callback: () -> Unit) {
-            val symbols = gameState.getPlayerSymbols()
-
-            requestAllSymbolData(symbols) {
-                //all symbol data requests are complete
-                gameState.index--
-                updatePlayerPercentages(gameState)
-                Log.d("key","updated player %s")
-                callback()
-            }
-        }
-
-        fun requestAllSymbolData(symbols: ArrayList<String>, callback: () -> Unit ) {
+        //simultaneously request data for all given symbols
+        //callback when all data is received
+        fun requestAllSymbolData(context: Context, symbols: ArrayList<String>, callback: () -> Unit ) {
             for (symbol in symbols) {
-                requestSymbolData(symbol) {
-                    if (allSymbolRequestsComplete(symbols)) {
+                requestSymbolData(context, symbol) {
+                    if (doAllSymbolsHaveData(symbols)) {
                         callback()
                     }
                 }
             }
         }
 
-        fun allSymbolRequestsComplete(symbols: ArrayList<String>) : Boolean {
+        //checks if there is data for all of the given symbols
+        //used to check if all API requests have successfully returned data
+        fun doAllSymbolsHaveData(symbols: ArrayList<String>) : Boolean {
             for (symbol in symbols) {
-                if (getSymbolData(symbol) == null) {
+                //if a single symbol's data is unset, they are not all complete
+                if (!containsSymbol(symbol)) {
                     return false
                 }
             }
@@ -215,14 +192,177 @@ class Global : Application() {
             return true
         }
 
-        fun getInitialIndex(gameState: GameState, callback: (Int) -> Unit) {
-            requestSymbolData(initRequestSymbol) {
-                //-1 to get in array bounds, -1 to ensure there was a previous date to compare to
-                callback(getSymbolData(initRequestSymbol)!!.length() - 2)
+        //try to add data for a symbol
+        //will not overwrite preexisting data
+        fun addSymbolData(symbol: String, data: JSONArray) {
+            //don't write if symbol is already stored
+            if (!containsSymbol(symbol)) {
+                symbolData.put(symbol,data)
             }
+        }
+
+        //check if a symbol is present in the dictionary
+        fun containsSymbol(symbol: String) : Boolean {
+            return symbolData.containsKey(symbol)
+        }
+
+        //get the data for a symbol
+        //returns null if none is present
+        fun getSymbolData(symbol: String) : JSONArray? {
+            if (containsSymbol(symbol)) {
+                return symbolData[symbol]
+            }
+
+            return null
+        }
+
+        //sends an API request if the given symbol doesn't have data
+        //callback when data is retrieved (or immediately if data already exists)
+        //MARKETSTACK API KEY IS USED/STORED HERE
+        fun requestSymbolData(context: Context, symbol: String, callback : () -> Unit) {
+            //don't request data if already held
+            if (containsSymbol(symbol)) {
+                callback()
+                return
+            }
+
+            //use backup data, no API requests sent
+            if (useBackupData) {
+                useBackupData(context, symbol, callback)
+                return
+            }
+
+            //send API request
+            val url = "http://api.marketstack.com/v1/eod?access_key=$apiKey&symbols=$symbol"
+            sendAPIRequest(context, url, symbol, callback)
+        }
+
+        //sends a request to the URL
+        //callback when done
+        //sendAPIRequest is adapted from Sanjit Samaddar's code
+        private fun sendAPIRequest(context: Context, url:String, symbol: String, callback : () -> Unit) {
+            val client = OkHttpClient()
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).enqueue(object : Callback {
+
+                //no internet or API down or something - should be covered by prior internet check but oh well
+                override fun onFailure(call: Call, e: IOException) {
+                    useBackupData(context, symbol, callback)
+                }
+
+                //response!
+                override fun onResponse(call: Call, response: Response) {
+                    response.use{
+                        if (response.isSuccessful) {
+                            //get data JSONArray from the response
+                            val rawJSON = JSONObject(response.body!!.string()).getJSONArray("data")
+                            getDatesFromData(context, rawJSON, symbol, callback)
+                        }
+
+                        //bad JSON - probably ran out of API requests
+                        else {
+                            useBackupData(context, symbol, callback)
+                        }
+                    }
+                }
+            })
+        }
+
+        //use backup data from backupapidata.json
+        fun useBackupData(context: Context, symbol: String, callback: () -> Unit) {
+            getDatesFromData(context, getBackupData(context), symbol, callback)
+        }
+
+        //get backup data from backupapidata.json
+        fun getBackupData(context: Context) : JSONArray {
+            //the line below is based on AbuMaaiz's solution
+            val backupData: String = context.assets.open("backupapidata.json").bufferedReader().use { it.readText() }
+            return JSONObject(backupData).getJSONArray("data")
+        }
+
+        //add the symbol data and callback
+        //issue here where if the backup data gets malformed, that's the last line of defense and malformed JSON will be added to the array
+        fun getDatesFromData(context: Context, data: JSONArray, symbol: String, callback : () -> Unit) {
+            try {
+                addSymbolData(symbol, data)
+                callback()
+            }
+
+            catch (e: JSONException) {
+                addSymbolData(symbol, getBackupData(context))
+                callback()
+            }
+        }
+
+        //get the date (in format YYYY-MM-DD) from a given index
+        //uses initRequestSymbol so MAKE SURE THAT'S INITIALIZED!! it should be anyway
+        fun getDateFromIndex(index: Int) : String {
+            var date = getSymbolData(initRequestSymbol)!!.getJSONObject(index).getString("date")
+            date = date.dropLast(14) //removes "T00:00:00+0000"
+            return date
+        }
+
+        //create a string representing the transition between the given index's date and the date prior
+        fun getDateTransition(index: Int) : String {
+            return getDateFromIndex(index) + " -> " + getDateFromIndex(index - 1)
+        }
+
+        //decides whether the internet connection is acceptable or not
+        //if using backup data, doesn't check internet
+        //if needing internet, sends a request to google to check if the internet's working
+        //ideally google won't go down while this is getting marked...
+        fun hasInternetOrUsingBackup(callback: (Boolean) -> Unit) {
+
+            //using backup data? cool, don't need the internet for anything anyway
+            if (useBackupData) {
+                callback(true)
+                return
+            }
+
+            //otherwise we need internet
+            val client = OkHttpClient()
+            val request = Request.Builder().url("http://www.google.com").build()
+
+            //callback with whether we connected to google.com or not
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback(false)
+                }
+                override fun onResponse(call: Call, response: Response) {
+                    callback(true)
+                }
+            })
+        }
+
+        //display a simple dialog
+        fun displayDialog(context: Context, title: String, message: String) {
+
+            (context as Activity).runOnUiThread(java.lang.Runnable {
+                val builder: AlertDialog.Builder = AlertDialog.Builder(context)
+                builder
+                    .setTitle(title)
+                    .setMessage(message)
+                    .setPositiveButton("Ok") { dialog, _ -> dialog.dismiss()
+                    }
+
+                val dialog: AlertDialog = builder.create()
+                dialog.show()
+            })
+        }
+
+        //display a dialog telling the player to fix their awful internet issues
+        fun displayDialogNoInternet(context: Context) {
+            val title = "No Internet Connection"
+            val message = "Please connect to the internet and try again."
+            displayDialog(context, title, message)
         }
 
 
 
+        //iterator for JSONArrays
+        //Ilya's code begins
+        operator fun JSONArray.iterator(): Iterator<JSONObject>
+                = (0 until length()).asSequence().map { get(it) as JSONObject }.iterator()
+        //Ilya's code ends
     }
 }

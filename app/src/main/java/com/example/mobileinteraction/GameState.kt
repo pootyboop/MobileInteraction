@@ -1,17 +1,16 @@
 package com.example.mobileinteraction
 
-//used to pass this class through intents with putParcelable()
+import android.content.Context
 import android.os.Parcel
 import android.os.Parcelable
-import android.util.Log
-import org.json.JSONArray
 
 //stores information about the current game
 //also holds references to all PlayerInfos
+//NOT globally referenced as not needed outside of game loop, instead passed between intents as Parcelable
 class GameState() : Parcelable {
-    var index: Int = 0
-    var round: Int = 1
-    lateinit var players: ArrayList<PlayerInfo>
+    var index: Int = 0  //index of the current date (explained further in Global.kt)
+    var round: Int = 1  //current round of the game. max rounds per game set in Global.kt
+    lateinit var players: ArrayList<PlayerInfo> //references to all players
 
     constructor(parcel: Parcel) : this() {
         index = parcel.readInt()
@@ -20,33 +19,24 @@ class GameState() : Parcelable {
     }
 
     constructor(playerCt: Int) : this() {
-        setPlayerCount(playerCt)
+        initPlayers(playerCt)
     }
 
-    fun getInitIndex(callback: () -> Unit) {
-        Global.getInitialIndex(this) {
+    //initialize index
+    fun getInitIndex(context: Context, callback: () -> Unit) {
+        Global.getInitialIndex(context, this) {
             index -> setDataIndex(index)
             callback()
         }
     }
 
     private fun setDataIndex(newIndex: Int) {
-        Log.d("GAMESTATE-NEWINDEX",newIndex.toString())
         index = newIndex
         return
     }
 
-    //adds a zero to ints under 10 to normalize date format
-    //(e.g. 4 -> 04, 12 -> 12)
-    private fun addZero(num: Int): String {
-        if (num < 10) {
-            return "0" + num.toString()
-        }
-
-        return num.toString()
-    }
-
-    private fun setPlayerCount(playersToAdd: Int) {
+    //initialize players array
+    private fun initPlayers(playersToAdd: Int) {
         players = arrayListOf<PlayerInfo>()
 
         for (i in 0..<playersToAdd) {
@@ -54,6 +44,7 @@ class GameState() : Parcelable {
         }
     }
 
+    //returns the most-recently-invested-in stock symbol of each player
     fun getPlayerSymbols() : ArrayList<String> {
         var symbols = ArrayList<String>()
 
@@ -63,6 +54,8 @@ class GameState() : Parcelable {
 
         return symbols
     }
+
+    //no more content from here, just boring parcel stuff
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(index)

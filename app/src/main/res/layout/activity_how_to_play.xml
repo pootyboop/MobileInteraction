@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bgtile_background"
+    tools:context=".HowToPlay">
+
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/titan_one"
+        android:text="How to Play"
+        android:textSize="48sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.561"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.042" />
+
+    <TextView
+        android:id="@+id/textView11"
+        android:layout_width="320dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/asap_medium"
+        android:text="Welcome to SpeedStocks! Invest in stocks, jump ahead in time, and get rich! Play alone and get as rich as possible, or with up to 4 friends for a competitive experience.\n\nEach round, take 3 cards from the deck of Stock Cards and place them face-up. Each player takes a turn picking which Stock Card to invest in (by scanning its QR code) and how much to invest.\n\nOnce investments are complete, you'll skip ahead in time (based on recent real-world stock data) and get your return.\n\nAfter 5 rounds of investments and returns, the richest player wins. Good luck!"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView9"
+        app:layout_constraintVertical_bias="0.12" />
+
+    <Button
+        android:id="@+id/button7"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:fontFamily="@font/titan_one"
+        android:onClick="goBack"
+        android:text="Back"
+        android:textSize="34sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView11" />
+</androidx.constraintlayout.widget.ConstraintLayout>

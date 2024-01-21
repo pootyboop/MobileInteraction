@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import com.google.android.gms.common.moduleinstall.ModuleInstall
 import com.google.android.gms.common.moduleinstall.ModuleInstallRequest
@@ -33,6 +34,7 @@ class Invest : AppCompatActivity() {
     //commonly used views
     lateinit var investmentInputText: TextView
     lateinit var nextButton: Button
+    lateinit var scanQRButton: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +49,7 @@ class Invest : AppCompatActivity() {
         //setup commonly used views
         investmentInputText = findViewById<TextView>(R.id.investmentInputText)
         nextButton = findViewById<Button>(R.id.investNextButton)
+        scanQRButton = findViewById<ImageView>(R.id.scanQRButton)
 
         //update round and time text
         updateRoundTimeTexts()
@@ -81,7 +84,7 @@ class Invest : AppCompatActivity() {
             }
             .addOnFailureListener { e ->
                 // Handle failure…
-                onQRScan(e.toString())
+                onQRScan(e.toString(), false)
             }
     }
 
@@ -102,29 +105,30 @@ class Invest : AppCompatActivity() {
         scanner.startScan()
             .addOnSuccessListener { barcode ->
                 // Task completed successfully
-                //Log.d("hi","successfully finished QR scanner")
                 val rawValue: String? = barcode.rawValue;
-                onQRScan(rawValue)
+                onQRScan(rawValue, true)
             }
             .addOnCanceledListener {
                 // Task canceled
-                //Log.d("hi","cancelled QR scanner")
-                onQRScan("Scan Cancelled!")
+                //onQRScan("Scan Cancelled!", false)
             }
             .addOnFailureListener { e ->
                 // Task failed with an exception
-                //Log.d("hi","failed QR scanner")
-                onQRScan(e.toString())
+                onQRScan(e.toString(), false)
             }
     }
 
-    fun onQRScan(qrValue: String?) {
+    fun onQRScan(qrValue: String?, success: Boolean) {
         //set on-screen text to represent the scanned QR code
         val scannedStockText: TextView = findViewById<TextView>(R.id.scannedStockText)
         scannedStockText.text = qrValue
 
-        gameState.players[playerIndex].stock = qrValue!!
-        nextButton.isEnabled = true
+        if (success) {
+            gameState.players[playerIndex].stock = qrValue!!
+            nextButton.isEnabled = true
+
+            scanQRButton.setImageDrawable(getResources().getDrawable(R.drawable.qrdone))
+        }
     }
 
     fun updateRoundTimeTexts() {
@@ -147,27 +151,53 @@ class Invest : AppCompatActivity() {
         val playerText: TextView = findViewById<TextView>(R.id.investPlayerID)
         playerText.text = "Player " + (playerIndex + 1).toString()
 
+        //update player balance
+        val investBalance: TextView = findViewById<TextView>(R.id.investBalance)
+        investBalance.text = "$" + gameState.players.get(playerIndex).balance
+
         //reset investment views
         investmentInputText.text = "10"
         nextButton.isEnabled = false
+        scanQRButton.setImageDrawable(getResources().getDrawable(R.drawable.qradd))
     }
 
     fun pressedNext(view: View) {
         //set current player's investment. toString().toInt() works around a TextInputEditText issue
         gameState.players.get(playerIndex).investment = investmentInputText.text.toString().toInt()
 
-        //next player's turn
-        playerIndex++
-
         //but there is no next player! all players have invested, continue to next stage of game
-        if (playerIndex == playerCt) {
+        if (playerIndex + 1 == playerCt) {
             //open next activity
-            investmentsFinished()
+            tryContinue()
         }
 
         //just kidding. some player(s) still need to invest, reset the screen for them
         else {
+
+            //next player's turn
+            playerIndex++
             setupNewPlayer()
+        }
+    }
+
+    fun tryContinue() {
+        //if all player symbols are already loaded, continue
+        if (Global.doAllSymbolsHaveData(gameState.getPlayerSymbols())) {
+            investmentsFinished()
+        }
+
+        //otherwise check internet before requesting them
+        else {
+
+            Global.hasInternetOrUsingBackup { connected ->
+                if (connected) {
+                    investmentsFinished()
+                }
+
+                else {
+                    Global.displayDialogNoInternet(this)
+                }
+            }
         }
     }
 

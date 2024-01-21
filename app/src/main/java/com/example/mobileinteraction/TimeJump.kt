@@ -3,6 +3,7 @@ package com.example.mobileinteraction
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import org.json.JSONException
 import org.json.JSONObject
@@ -19,7 +20,11 @@ class TimeJump : AppCompatActivity() {
         //grab GameState from intent
         gameState = intent.getParcelableExtra<GameState>("GameState")!!
 
-        Global.jumpForward(gameState) {
+        //display the change in dates
+        val datesTransition: TextView = findViewById<TextView>(R.id.datesTransition)
+        datesTransition.text = "(" + Global.getDateTransition(gameState.index) + ")"
+
+        Global.jumpForward(this, gameState) {
             finishedLoading()
         }
     }

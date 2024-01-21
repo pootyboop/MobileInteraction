@@ -15,4 +15,9 @@ class Home : AppCompatActivity() {
         val intent = Intent(this, Players::class.java)
         startActivity(intent)
     }
+
+    fun howToPlay(view: View) {
+        val intent = Intent(this, HowToPlay::class.java)
+        startActivity(intent)
+    }
 }

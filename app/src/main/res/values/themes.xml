@@ -3,6 +3,8 @@
     <style name="Base.Theme.MobileInteraction" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/green</item>
+        <item name="colorPrimaryVariant">@color/green</item>
     </style>
 
     <style name="Theme.MobileInteraction" parent="Base.Theme.MobileInteraction" />

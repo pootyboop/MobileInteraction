@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import androidx.core.view.isVisible
 
 /** This script includes a solution from StackOverflow
  * Author: Ilya
@@ -25,6 +26,9 @@ class Scoreboard : AppCompatActivity() {
 
         //setup scoreboard
         rankPlayers()
+
+        //hide next round tip text if necessary
+        hideTip()
     }
 
     fun rankPlayers() {
@@ -49,15 +53,36 @@ class Scoreboard : AppCompatActivity() {
         scoreboardText.text = scoreboardContent
     }
 
+    fun hideTip() {
+        //+1 = next round
+        if (gameState.round + 1 > Global.maxRounds) {
+            val nextRoundTip: TextView = findViewById<TextView>(R.id.nextRoundTip)
+            nextRoundTip.isVisible = false
+        }
+    }
+
     fun nextRound(view: View) {
-        //new round
+        //next round
         gameState.round++
 
-        //open Invest
-        val intent = Intent(this, Invest::class.java)
-        //add the parcelable GameState (which includes PlayerInfos) to the intent
-        intent.putExtra("GameState", gameState)
+        //keep playing, new round
+        if (gameState.round <= Global.maxRounds) {
+            //open Invest
+            val intent = Intent(this, Invest::class.java)
+            //add the parcelable GameState (which includes PlayerInfos) to the intent
+            intent.putExtra("GameState", gameState)
 
-        startActivity(intent)
+            startActivity(intent)
+        }
+
+        //end game
+        else {
+            //open GameOver
+            val intent = Intent(this, GameOver::class.java)
+            //add the parcelable GameState (which includes PlayerInfos) to the intent
+            intent.putExtra("GameState", gameState)
+
+            startActivity(intent)
+        }
     }
 }
