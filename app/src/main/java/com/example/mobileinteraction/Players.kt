@@ -7,6 +7,12 @@ import android.view.View
 import android.widget.SeekBar
 import android.widget.TextView
 
+/** This script includes a solution based on a GeeksforGeeks tutorial
+ * Author: Praveenr
+ * Accessed: 1/5/2024
+ * Location: https://www.geeksforgeeks.org/seekbar-in-kotlin/
+ */
+
 class Players : AppCompatActivity() {
 
     var playerCt: Int = 1;
@@ -18,20 +24,22 @@ class Players : AppCompatActivity() {
         setupPlayerCtSeekbar()
     }
 
+    //this function is based on Praveenr's solution
     //setup the player count seekbar so we can track when it's changed
     private fun setupPlayerCtSeekbar() {
-        //https://www.geeksforgeeks.org/seekbar-in-kotlin/
         val seek = findViewById<SeekBar>(R.id.playerCtBar)
         seek?.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seek: SeekBar,
                                            progress: Int, fromUser: Boolean) {
 
+                //my code from here...
                 //update the GameState's player count
                 playerCt = progress
 
                 val textView: TextView = findViewById<TextView>(R.id.sliderPlayerCt)
                 textView.text = progress.toString()
+                //...to here
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {

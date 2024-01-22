@@ -7,12 +7,6 @@ import android.view.View
 import android.widget.TextView
 import androidx.core.view.isVisible
 
-/** This script includes a solution from StackOverflow
- * Author: Ilya
- * Accessed: 1/14/2024
- * Location: https://stackoverflow.com/a/36188796
- */
-
 class Scoreboard : AppCompatActivity() {
 
     lateinit var gameState: GameState

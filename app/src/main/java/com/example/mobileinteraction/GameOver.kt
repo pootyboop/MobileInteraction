@@ -22,7 +22,7 @@ class GameOver : AppCompatActivity() {
     }
 
     fun displayWinner() {
-        var winner = PlayerInfo(-1) //initialize this so the winner.playerID.toString() line shuts up
+        var winner = PlayerInfo(-1) //initialize this so the winnerText.text line shuts up
         var balance = 0
         for (player in gameState.players) {
             if (player.balance > balance) {

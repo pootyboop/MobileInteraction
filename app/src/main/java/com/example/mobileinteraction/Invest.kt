@@ -30,7 +30,7 @@ import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
  * Location: https://developers.google.com/android/guides/module-install-apis
  * */
 
-/* This script includes a Kotlin adaptation of a Java solutiuon from Stackoverflow
+/* This script includes a Kotlin adaptation of a Java solution from Stackoverflow
  * Author: ARK
  * Accessed: 17/1/2024
  * Location: https://stackoverflow.com/a/37394516
@@ -143,7 +143,6 @@ class Invest : AppCompatActivity() {
             }
             .addOnCanceledListener {
                 // Task canceled
-                //onQRScan("Scan Cancelled!", false)
             }
             .addOnFailureListener { e ->
                 // Task failed with an exception
@@ -289,7 +288,6 @@ class Invest : AppCompatActivity() {
 
         //otherwise check internet before requesting them
         else {
-
             Global.hasInternetOrUsingBackup { connected ->
                 if (connected) {
                     investmentsFinished()

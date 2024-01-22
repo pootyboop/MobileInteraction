@@ -75,6 +75,7 @@ class Results : AppCompatActivity() {
         }
     }
 
+    //return "+" if given number is non-negative
     fun plusIfPositive(num: Float) : String {
         if (num >= 0) {
             return "+"
